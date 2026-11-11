@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f07800">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="巡查日報">
+<title>東唐建設｜工務巡查日報</title>
+<style>
+:root{
+  /* 東唐建設品牌色（取自 LOGO）：橘 #F07800、深灰 #403838 */
+  --brand:#f07800; --primary:#d96a00; --primary-d:#b85900; --primary-l:#fff3e5; --primary-line:#fbc98f;
+  --ink:#403838; --text:#2b2626; --muted:#6b7280; --line:#e5e7eb; --bg:#f5f6fa; --card:#fff;
+  --green:#16a34a; --green-l:#ecfdf3; --red:#dc2626; --red-l:#fef2f2; --amber:#d97706; --amber-l:#fffbeb; --gray:#9ca3af;
+  --radius:12px;
+  font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+  color:var(--text); font-size:15px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fff;width:100%;min-height:42px;font-size:16px}
+textarea{resize:vertical;min-height:64px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--primary);outline-offset:-1px;border-color:transparent}
+input:disabled,select:disabled,textarea:disabled{background:#fafafa;color:var(--text);opacity:1}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:10px}
+label>input,label>select,label>textarea{margin-top:4px;color:var(--text)}
+h1,h2,h3{margin:0}
+.muted{color:var(--muted)} .small{font-size:13px} .spacer{flex:1} .grow{flex:1;min-width:0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+
+/* 按鈕 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid transparent;border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:600;background:#fff;min-height:44px}
+.btn.primary{background:var(--primary);color:#fff}
+.btn.primary:active{background:var(--primary-d)}
+.btn.ghost{border-color:var(--line)}
+.btn.dark{background:var(--ink);color:#fff}
+.btn.danger{color:var(--red);border-color:#fecaca}
+.btn.sm{padding:6px 12px;font-size:13px;min-height:34px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5}
+.icon{background:none;border:0;cursor:pointer;font-size:18px;line-height:1;padding:6px 8px;color:var(--muted)}
+
+/* 版面 */
+.topbar{display:flex;align-items:center;gap:10px;padding:0 14px;padding-top:env(safe-area-inset-top);height:calc(56px + env(safe-area-inset-top));background:#fff;border-bottom:3px solid var(--brand);position:sticky;top:0;z-index:20;box-shadow:0 1px 6px rgba(64,56,56,.08)}
+.topbar img{height:32px;width:auto;display:block}
+.topbar .sys{padding-left:10px;border-left:1px solid var(--line);font-weight:700;font-size:15px;letter-spacing:1px;color:var(--ink);white-space:nowrap}
+.topbar .who{margin-left:auto;font-size:12px;color:var(--muted);text-align:right;line-height:1.3}
+main{max-width:680px;margin:0 auto;padding:12px 12px calc(96px + env(safe-area-inset-bottom))}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px;margin-bottom:12px}
+.card.empty{text-align:center;padding:32px 20px}
+.card.empty .big{font-size:44px;margin-bottom:6px}
+.sec-h{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--primary-l)}
+.sec-h h2{font-size:17px;color:var(--primary)}
+.cnt{background:var(--primary-l);color:var(--primary);border-radius:20px;padding:1px 10px;font-size:13px;font-weight:700}
+.tag{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;background:#f3f4f6;color:var(--muted)}
+.tag.ok{background:var(--green-l);color:var(--green)}
+.tag.warn{background:var(--amber-l);color:var(--amber)}
+.tag.bad{background:var(--red-l);color:var(--red)}
+.tag.carry{background:#eef2ff;color:#4f46e5}
+
+/* 底部分頁 */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 8px rgba(0,0,0,.04)}
+.tabbar button{flex:1;border:0;background:none;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted);cursor:pointer}
+.tabbar button b{font-size:21px;line-height:1;filter:grayscale(1);opacity:.6}
+.tabbar button.on{color:var(--primary);font-weight:700}
+.tabbar button.on b{filter:none;opacity:1}
+
+/* 選工地 */
+.picker{border-top:4px solid var(--brand)}
+.picker .g2 label{margin-bottom:0}
+.statbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:12px;font-size:13px}
+.saved{margin-left:auto;font-size:12px;color:var(--gray)}
+.lockbar{background:var(--green-l);color:var(--green);border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px;display:flex;gap:8px;align-items:center}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+fieldset:disabled .del,fieldset:disabled .addph,fieldset:disabled .hide-lock{display:none!important}
+
+/* 缺失 */
+.defect{border:1px solid var(--line);border-left:5px solid var(--gray);border-radius:10px;padding:12px;margin-bottom:12px;background:#fff}
+.defect.s1{border-left-color:#60a5fa} .defect.s2{border-left-color:var(--amber)} .defect.s3{border-left-color:var(--red)}
+.defect.done{background:#fbfefc}
+.dh{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.dh b{font-size:16px;color:var(--ink)}
+.phl{font-size:13px;color:var(--muted);margin:2px 0 6px}
+
+/* 照片 */
+.thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.th{position:relative;width:78px;height:78px;border-radius:8px;overflow:hidden;background:#eee}
+.th img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.th .del{position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:15px;line-height:24px;padding:0;cursor:pointer}
+.addph{width:78px;height:78px;border:1.5px dashed var(--primary-line);border-radius:8px;background:var(--primary-l);color:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;cursor:pointer;gap:2px}
+.addph span{font-size:12px;font-weight:600}
+.gphotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:10px}
+.gp .th{width:100%;height:auto;aspect-ratio:4/3}
+.gp input{margin-top:4px;font-size:14px;min-height:36px;padding:6px 8px}
+
+/* 勞安 */
+details.sg{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden}
+details.sg summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;font-weight:600;color:var(--ink);background:#fafafa}
+details.sg summary::-webkit-details-marker{display:none}
+details.sg summary::before{content:'▸';color:var(--primary);transition:transform .15s}
+details.sg[open] summary::before{transform:rotate(90deg)}
+details.sg summary .sgc{margin-left:auto;font-size:13px;font-weight:400;color:var(--muted)}
+details.sg summary .sgc.full{color:var(--green);font-weight:600}
+.ngc{color:var(--red)}
+.sgb{padding:10px 12px 4px}
+.si{padding:10px 0;border-bottom:1px dashed var(--line)}
+.si:last-child{border-bottom:0}
+.si.ng{background:linear-gradient(90deg,var(--red-l),transparent);margin:0 -12px;padding:10px 12px}
+.sit{font-size:15px;margin-bottom:8px}
+.seg{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:6px}
+.seg button{border:0;border-right:1px solid var(--line);background:#fff;padding:8px 0;font-size:14px;cursor:pointer;color:var(--muted)}
+.seg button:last-child{border-right:0}
+.seg button.on.ok{background:var(--green);color:#fff;font-weight:700}
+.seg button.on.ng{background:var(--red);color:#fff;font-weight:700}
+.seg button.on.na{background:var(--gray);color:#fff;font-weight:700}
+.si input{margin:4px 0 8px}
+
+/* 簽名 */
+.sigimg{max-width:260px;width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;display:block;margin-bottom:6px}
+.actbar{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom));z-index:5;padding-top:4px}
+.actbar .btn{box-shadow:0 4px 14px rgba(217,106,0,.35);font-size:16px;min-height:50px}
+
+/* 紀錄 */
+.rec{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.rec:last-child{border-bottom:0}
+.rec .d{width:54px;text-align:center;flex:none;border-radius:10px;background:var(--primary-l);color:var(--primary);padding:6px 0;line-height:1.15}
+.rec .d b{display:block;font-size:20px}
+.rec .d span{font-size:11px}
+.rec .m{flex:1;min-width:0}
+.rec .m .t{font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec .m .s{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.month{font-size:13px;font-weight:700;color:var(--muted);margin:14px 4px 2px}
+.site-li{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
+.site-li .n{flex:1;font-weight:600}
+
+/* 彈窗 */
+#modal .bk{position:fixed;inset:0;background:rgba(30,25,25,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+#modal .sheet{background:#fff;width:100%;max-width:680px;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+#modal .sheet h3{color:var(--ink);margin-bottom:6px}
+#sigC{width:100%;height:220px;border:2px dashed var(--primary-line);border-radius:10px;background:#fff;touch-action:none;display:block;margin:10px 0}
+#modal .viewer{position:fixed;inset:0;z-index:60;background:#000;display:flex;align-items:center;justify-content:center}
+#modal .viewer img{max-width:100%;max-height:100%}
+#modal .viewer button{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;background:rgba(255,255,255,.2);color:#fff;border:0;border-radius:50%;width:42px;height:42px;font-size:22px}
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:24px;font-size:14px;z-index:70;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap}
+#toast.on{opacity:1}
+.busy{position:fixed;inset:0;z-index:80;background:rgba(255,255,255,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-weight:600;color:var(--ink)}
+.spin{width:38px;height:38px;border:4px solid var(--primary-l);border-top-color:var(--brand);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* 預覽 */
+.pvbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.pvwrap{background:#e9eaee;border-radius:10px;padding:8px;overflow:hidden}
+.pvwrap .paper{box-shadow:0 2px 10px rgba(0,0,0,.15)}
+
+/* ===== A4 日報紙本 (794px ≒ A4 寬) ===== */
+.paper{width:794px;background:#fff;color:#222;font-size:13px;line-height:1.5;padding:28px 34px;font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif}
+.paper-host{position:fixed;left:-12000px;top:0;z-index:-1}
+.paper-host .paper{padding:0}
+.paper .blk{padding-bottom:12px}
+.phead{display:flex;align-items:center;gap:16px;border-bottom:4px solid #f07800;padding-bottom:10px!important;margin-bottom:12px}
+.phead .plogo{height:46px}
+.phead .pt{flex:1;text-align:center}
+.phead .pt1{font-size:22px;font-weight:800;color:#403838;letter-spacing:4px}
+.phead .pt2{font-size:11px;color:#888;letter-spacing:2px}
+.phead .pno{font-size:11px;color:#888;text-align:right;width:120px}
+.paper table{width:100%;border-collapse:collapse;table-layout:fixed}
+.paper th,.paper td{border:1px solid #b9b2b2;padding:5px 7px;vertical-align:top;word-break:break-all}
+.paper th{background:#fff3e5;color:#403838;font-weight:700;text-align:center;white-space:nowrap}
+.paper .kv th{width:92px}
+.paper .pre{white-space:pre-wrap}
+.psec{background:#403838;color:#fff;font-weight:700;font-size:14px;padding:5px 10px;margin-bottom:8px;border-left:6px solid #f07800}
+.pnone{border:1px dashed #ccc;padding:10px;color:#666;text-align:center}
+.pd th.no{width:34px;background:#f07800;color:#fff;font-size:15px;vertical-align:middle}
+.pd th{width:68px}
+.pd .sv3{color:#dc2626;font-weight:700} .pd .sv2{color:#d97706;font-weight:700}
+.pd .stdone{color:#16a34a;font-weight:700}
+.phcap{font-size:11px;color:#666;margin:2px 0 3px}
+.pph{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.pph .pimg{width:160px;height:120px;background:#eee center/cover no-repeat;border:1px solid #ddd}
+.pph.sm .pimg{width:110px;height:82px}
+.ps .pit{width:auto} .ps col.c2{width:78px} .ps col.c3{width:290px}
+.ps .pcat th{text-align:left;background:#f4f1f1}
+.ps .colh th{background:#fff3e5;font-size:12px}
+.ps td.res{text-align:center;white-space:nowrap}
+.ps td.res.ok{color:#16a34a} .ps td.res.ng{color:#dc2626;font-weight:700} .ps td.res.na{color:#999}
+.ps tr.ngr td{background:#fff5f5}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pgrid figure{margin:0;border:1px solid #ddd;padding:4px}
+.pgrid .pimg{width:100%;height:170px;background:#eee center/cover no-repeat}
+.pgrid figcaption{font-size:12px;padding:3px 2px 0;min-height:18px}
+.psign td.sbox{height:120px;text-align:center;vertical-align:middle}
+.psign td.sbox img{max-height:84px;max-width:250px}
+.psmall{font-size:11px;color:#777}
+.pfoot{font-size:11px;color:#999;text-align:center;margin-top:10px}
+
+@media print{
+  @page{size:A4;margin:10mm}
+  body{background:#fff}
+  .topbar,.tabbar,.pvbar,.no-print,#toast{display:none!important}
+  main{padding:0;max-width:none}
+  .pvwrap{background:none;padding:0}
+  .pvwrap .paper{zoom:1!important;width:auto;padding:0;box-shadow:none}
+  .paper .blk{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <img src="logo.png" alt="東唐建設">
+  <span class="sys">工務巡查日報</span>
+  <span class="who" id="who"></span>
+</header>
+<main id="app"></main>
+<nav class="tabbar">
+  <button data-go="today"><b>📋</b>今日巡查</button>
+  <button data-go="list"><b>🗂</b>歷史日報</button>
+  <button data-go="settings"><b>⚙️</b>設定</button>
+</nav>
+<input type="file" id="camIn" accept="image/*" capture="environment" hidden>
+<input type="file" id="albIn" accept="image/*" multiple hidden>
+<input type="file" id="bakIn" accept="application/json,.json" hidden>
+<div id="modal"></div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script>
+'use strict';
+/* ================= 基本工具 ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad2 = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const todayStr = () => ymd(new Date());
+const weekday = s => '日一二三四五六'[new Date(s + 'T00:00').getDay()];
+const fmtTime = t => { const d = new Date(t); return `${ymd(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+const opts = (list, v) => list.map(x => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('');
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2000); }
+function busy(on, msg = '處理中…') {
+  let b = $('.busy');
+  if (on) { if (!b) { b = document.createElement('div'); b.className = 'busy'; document.body.appendChild(b); } b.innerHTML = `<div class="spin"></div><div>${esc(msg)}</div>`; }
+  else if (b) b.remove();
+}
+
+/* ================= 資料庫（IndexedDB，資料只存在這支手機） ================= */
+let db;
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('dongtang-daily', 1);
+    r.onupgradeneeded = () => { const d = r.result; d.createObjectStore('reports', { keyPath: 'id' }); d.createObjectStore('photos', { keyPath: 'id' }); d.createObjectStore('kv'); };
+    r.onsuccess = () => { db = r.result; res(); };
+    r.onerror = () => rej(r.error);
+  });
+}
+function tx(store, mode, fn) {
+  return new Promise((res, rej) => {
+    const t = db.transaction(store, mode); const q = fn(t.objectStore(store));
+    t.oncomplete = () => res(q && q.result); t.onerror = t.onabort = () => rej(t.error);
+  });
+}
+const dbGet = (s, k) => tx(s, 'readonly', o => o.get(k));
+const dbPut = (s, v, k) => tx(s, 'readwrite', o => k === undefined ? o.put(v) : o.put(v, k));
+const dbDel = (s, k) => tx(s, 'readwrite', o => o.delete(k));
+const dbAll = s => tx(s, 'readonly', o => o.getAll());
+
+/* ================= 設定與常數 ================= */
+const S = { name: '', title: '工務經理', sites: [], vendors: [], watermark: true, lastSig: null, lastSite: '' };
+const saveSettings = () => dbPut('kv', JSON.parse(JSON.stringify(S)), 'settings');
+
+const WEATHER = ['晴', '多雲', '陰', '小雨', '大雨', '雷雨', '颱風', '停工'];
+const CATS = ['結構體', '鋼筋', '模板', '混凝土', '施工架', '水電', '防水', '泥作', '裝修', '門窗', '景觀', '勞工安全', '環境整潔', '其他'];
+const SEV = ['輕微', '一般', '嚴重'];
+const STATUS = ['待改善', '改善中', '已改善'];
+const SAFETY = [
+  { c: '一般管理', i: [['a1', '工地出入管制、人員簽到確實'], ['a2', '每日危害告知／工具箱會議（TBM）已執行'], ['a3', '職安衛管理人員在場'], ['a4', '新進勞工已接受安全衛生教育訓練']] },
+  { c: '個人防護具', i: [['b1', '安全帽確實配戴並扣頤帶'], ['b2', '高處作業使用背負式安全帶並確實勾掛'], ['b3', '安全鞋、反光背心等防護具穿戴'], ['b4', '焊接、切割作業使用護目鏡／面罩']] },
+  { c: '墜落防止', i: [['c1', '樓板開口設置護蓋或護欄'], ['c2', '樓板邊緣、樓梯設置護欄'], ['c3', '電梯井、管道間開口防護'], ['c4', '安全網設置完整'], ['c5', '上下設備（樓梯、爬梯）設置安全']] },
+  { c: '施工架', i: [['d1', '設置上下拉桿、交叉拉桿及腳趾板'], ['d2', '壁連座設置足夠且牢固'], ['d3', '基腳穩固、無沉陷'], ['d4', '工作台舖滿固定、寬度足夠'], ['d5', '每日檢點並張貼檢查標示']] },
+  { c: '模板支撐', i: [['e1', '支撐穩固、間距符合施工計畫'], ['e2', '設置水平繫條及斜撐'], ['e3', '混凝土澆置時有專人監看支撐']] },
+  { c: '電氣安全', i: [['f1', '臨時用電設置漏電斷路器'], ['f2', '電線架高或保護，無破損'], ['f3', '電氣設備確實接地'], ['f4', '配電箱上鎖並標示']] },
+  { c: '機具及吊掛', i: [['g1', '起重機具具檢查合格證'], ['g2', '操作、吊掛人員具資格證照'], ['g3', '吊鉤防脫裝置、鋼索吊具良好'], ['g4', '吊掛作業半徑設置管制'], ['g5', '車輛機械倒車警示並有引導人員']] },
+  { c: '物料及通道', i: [['h1', '材料堆置穩固、高度適當'], ['h2', '通道暢通、無障礙物'], ['h3', '鋼筋端部設置護套'], ['h4', '作業場所照明充足']] },
+  { c: '消防及危險物', i: [['i1', '滅火器數量足夠且在有效期限'], ['i2', '動火作業已申請許可並有監火人員'], ['i3', '氣體鋼瓶直立固定、有防倒措施'], ['i4', '易燃物分類存放並遠離火源']] },
+  { c: '衛生及環保', i: [['j1', '廁所、飲水設施清潔'], ['j2', '急救箱藥品齊全'], ['j3', '環境整潔、廢棄物分類'], ['j4', '洗車台、防塵網、灑水等防制措施'], ['j5', '高溫作業之休息、補水措施']] },
+];
+const SAFETY_TXT = Object.fromEntries(SAFETY.flatMap(g => g.i));
+
+function blankReport(date, site) {
+  return {
+    id: date + '_' + site.id, date, siteId: site.id, siteName: site.name,
+    weather: '晴', temp: '', workers: '', timeStart: '', timeEnd: '', workItems: '',
+    defects: [], safety: {}, safetyNote: '', photos: [], summary: '', tomorrow: '',
+    signature: null, createdAt: Date.now(), updatedAt: Date.now()
+  };
+}
+function newDefect(date) {
+  return { id: uid(), origin: '', firstDate: date, location: '', category: '結構體', desc: '', severity: '一般', vendor: '', due: '', status: '待改善', photos: [], fixPhotos: [] };
+}
+function stats(r) {
+  const vals = Object.values(r.safety);
+  return {
+    def: r.defects.length,
+    open: r.defects.filter(d => d.status !== '已改善').length,
+    ng: vals.filter(x => x.r === 'ng').length,
+    checked: vals.filter(x => x.r).length,
+    nPhoto: r.photos.length + r.defects.reduce((a, d) => a + d.photos.length + d.fixPhotos.length, 0) + vals.reduce((a, s) => a + (s.photos?.length || 0), 0)
+  };
+}
+
+/* ================= 照片 ================= */
+const urlCache = new Map();
+async function photoURL(id) {
+  if (urlCache.has(id)) return urlCache.get(id);
+  const p = await dbGet('photos', id); if (!p) return '';
+  const u = URL.createObjectURL(p.blob); urlCache.set(id, u); return u;
+}
+async function hydrate(root) {
+  const jobs = [];
+  $$('img[data-pid]', root).forEach(im => jobs.push((async () => {
+    if (!im.getAttribute('src')) { const u = await photoURL(im.dataset.pid); if (u) im.src = u; }
+    try { await im.decode(); } catch (e) { }
+  })()));
+  $$('[data-bg]', root).forEach(el => jobs.push((async () => {
+    const u = await photoURL(el.dataset.bg); if (!u) return;
+    el.style.backgroundImage = `url("${u}")`;
+    await new Promise(r => { const i = new Image(); i.onload = i.onerror = r; i.src = u; });
+  })()));
+  await Promise.all(jobs);
+}
+async function compress(file, when) {
+  const src = URL.createObjectURL(file);
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+  const M = 1600; let w = img.naturalWidth, h = img.naturalHeight; const k = Math.min(1, M / Math.max(w, h));
+  w = Math.round(w * k); h = Math.round(h * k);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h); URL.revokeObjectURL(src);
+  if (S.watermark && cur) { // 照片加註工地與時間
+    const fs = Math.max(16, Math.round(w / 38)); const p = fs * .5;
+    x.font = `bold ${fs}px "Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif`;
+    const t1 = '東唐建設｜' + cur.siteName, t2 = fmtTime(when);
+    const tw = Math.max(x.measureText(t1).width, x.measureText(t2).width), bh = fs * 2.5;
+    x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(w - tw - p * 3, h - bh - p, tw + p * 2, bh);
+    x.textAlign = 'right'; x.textBaseline = 'top';
+    x.fillStyle = '#fff'; x.fillText(t1, w - p * 2, h - bh - p + p * .35);
+    x.fillStyle = '#ffc27a'; x.fillText(t2, w - p * 2, h - bh - p + p * .35 + fs * 1.15);
+  }
+  return new Promise(r => c.toBlob(r, 'image/jpeg', .82));
+}
+async function copyPhoto(id) {
+  const p = await dbGet('photos', id); if (!p) return null;
+  const nid = uid(); await dbPut('photos', { id: nid, blob: p.blob }); return nid;
+}
+function thumbs(arr, t) {
+  return `<div class="thumbs">${(arr || []).map(id => `<div class="th"><img data-pid="${id}" data-act="viewPhoto" alt=""><button class="del" data-act="delPhoto" data-t="${t}" data-pid="${id}" aria-label="刪除照片">×</button></div>`).join('')}
+    <button class="addph" data-act="addPhoto" data-t="${t}" data-m="cam">📷<span>拍照</span></button>
+    <button class="addph" data-act="addPhoto" data-t="${t}" data-m="alb">🖼️<span>相簿</span></button></div>`;
+}
+
+/* ================= 狀態 / 導覽（支援手機返回鍵） ================= */
+let view = 'today', cur = null, prevRep = null, selDate = todayStr(), selSite = '', listSite = '';
+const openCats = new Set();
+function go(v, push = true) {
+  if (push && v !== view) history.pushState({ v }, '');
+  view = v; render(); window.scrollTo(0, 0);
+}
+window.addEventListener('popstate', e => {
+  if ($('#modal').innerHTML) { $('#modal').innerHTML = ''; return; }
+  view = e.state?.v || 'today'; render();
+});
+function render() {
+  $$('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.go === view || (view === 'preview' && b.dataset.go === 'today')));
+  $('#who').innerHTML = S.name ? `${esc(S.name)}<br>${esc(S.title)}` : '';
+  ({ today: renderToday, list: renderList, settings: renderSettings, preview: renderPreview })[view]();
+}
+
+/* ================= 今日巡查 ================= */
+async function renderToday() {
+  const app = $('#app');
+  if (!S.sites.length) {
+    app.innerHTML = `<div class="card empty"><div class="big">🏗️</div><h3>先建立您負責的工地</h3>
+      <p class="muted small">建立後即可用下拉選單選擇工地，開始每日巡查。</p>
+      <button class="btn primary block" data-act="addSite">＋ 新增工地</button></div>`;
+    return;
+  }
+  if (!S.sites.find(s => s.id === selSite)) selSite = S.lastSite && S.sites.find(s => s.id === S.lastSite) ? S.lastSite : S.sites[0].id;
+  const site = S.sites.find(s => s.id === selSite);
+  cur = (await dbGet('reports', selDate + '_' + selSite)) || null;
+  const all = await dbAll('reports');
+  prevRep = all.filter(r => r.siteId === selSite && r.date < selDate).sort((a, b) => b.date.localeCompare(a.date))[0] || null;
+
+  let h = `<div class="card picker">
+    <div class="g2">
+      <label>巡查日期<input type="date" id="pDate" value="${selDate}"></label>
+      <label>工地<select id="pSite">${S.sites.map(s => `<option value="${s.id}" ${s.id === selSite ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}<option value="__new">＋ 新增工地…</option></select></label>
+    </div>
+    ${cur ? `<div class="statbar" id="statbar"></div>` : ''}
+  </div>`;
+
+  if (!cur) {
+    const carry = prevRep ? prevRep.defects.filter(d => d.status !== '已改善').length : 0;
+    h += `<div class="card empty"><div class="big">📋</div><h3>${esc(site.name)}</h3>
+      <p class="muted">${selDate}（${weekday(selDate)}）尚未建立巡查日報</p>
+      ${carry ? `<p class="small" style="color:var(--amber)">⚠ 前次巡查（${prevRep.date}）尚有 ${carry} 項缺失未改善，建立後可帶入追蹤</p>` : ''}
+      <button class="btn primary block" data-act="start">開始巡查</button></div>`;
+    app.innerHTML = h; return;
+  }
+  const locked = !!cur.signature;
+  h += `${locked ? `<div class="lockbar">🔒 本日報已簽名鎖定。如需修改，請至下方「解除簽名」。</div>` : ''}
+  <fieldset id="ed" ${locked ? 'disabled' : ''}>
+    <section class="card"><div class="sec-h"><h2>🗒️ 基本資料</h2></div>
+      <div class="g2">
+        <label>天氣<select data-f="weather">${opts(WEATHER, cur.weather)}</select></label>
+        <label>氣溫 (°C)<input data-f="temp" inputmode="decimal" value="${esc(cur.temp)}" placeholder="如 26"></label>
+        <label>巡查開始<input type="time" data-f="timeStart" value="${esc(cur.timeStart)}"></label>
+        <label>巡查結束<input type="time" data-f="timeEnd" value="${esc(cur.timeEnd)}"></label>
+      </div>
+      <label>現場出工人數<input data-f="workers" inputmode="numeric" value="${esc(cur.workers)}" placeholder="如 35"></label>
+      <label style="margin-bottom:0">主要施工項目<textarea data-f="workItems" rows="2" placeholder="如：5F 頂版鋼筋綁紮、3F 隔間砌磚">${esc(cur.workItems)}</textarea></label>
+    </section>
+    <section class="card" id="sec-defects"></section>
+    <section class="card" id="sec-safety"></section>
+    <section class="card" id="sec-photos"></section>
+    <section class="card"><div class="sec-h"><h2>📝 綜合說明</h2></div>
+      <label>本日巡查綜合意見<textarea data-f="summary" rows="3" placeholder="整體進度、品質、需協調事項…">${esc(cur.summary)}</textarea></label>
+      <label style="margin-bottom:0">明日預定工作／待辦<textarea data-f="tomorrow" rows="2">${esc(cur.tomorrow)}</textarea></label>
+    </section>
+  </fieldset>
+  <section id="sec-sign"></section>
+  <div class="actbar"><button class="btn primary block" data-act="preview">📄 預覽／匯出本日日報</button></div>`;
+  app.innerHTML = h;
+  ['defects', 'safety', 'photos', 'sign'].forEach(refresh);
+}
+function refresh(sec) {
+  const el = $('#sec-' + sec); if (!el || !cur) return;
+  el.innerHTML = ({ defects: defectsHTML, safety: safetyHTML, photos: photosHTML, sign: signHTML })[sec](cur);
+  hydrate(el); updateStats();
+}
+function updateStats(savedMsg) {
+  const el = $('#statbar'); if (!el || !cur) return;
+  const s = stats(cur);
+  el.innerHTML = `<span class="tag ${s.open ? 'warn' : ''}">缺失 ${s.def}（未改善 ${s.open}）</span>
+    <span class="tag ${s.ng ? 'bad' : ''}">勞安不符合 ${s.ng}</span><span class="tag">照片 ${s.nPhoto}</span>
+    <span class="tag ${cur.signature ? 'ok' : 'warn'}">${cur.signature ? '已簽名' : '未簽名'}</span>
+    <span class="saved" id="saved">${savedMsg || ''}</span>`;
+}
+
+function carryList() {
+  if (!prevRep || !cur) return [];
+  const have = new Set(cur.defects.map(d => d.origin || d.id));
+  return prevRep.defects.filter(d => d.status !== '已改善' && !have.has(d.origin || d.id));
+}
+function defectsHTML(r) {
+  const carry = carryList();
+  let h = `<div class="sec-h"><h2>🔍 巡檢缺失紀錄</h2><span class="cnt">${r.defects.length}</span></div>`;
+  if (!r.defects.length) h += `<p class="muted small">尚無缺失。巡查發現問題時按「新增缺失」，並拍照記錄。</p>`;
+  r.defects.forEach((d, i) => {
+    const sv = SEV.indexOf(d.severity) + 1;
+    h += `<div class="defect s${sv} ${d.status === '已改善' ? 'done' : ''}">
+      <div class="dh"><b>#${i + 1}</b>
+        <span class="tag ${sv === 3 ? 'bad' : sv === 2 ? 'warn' : ''}">${esc(d.severity)}</span>
+        <span class="tag ${d.status === '已改善' ? 'ok' : 'warn'}">${esc(d.status)}</span>
+        ${d.firstDate && d.firstDate !== r.date ? `<span class="tag carry">追蹤自 ${d.firstDate.slice(5)}</span>` : ''}
+        <span class="spacer"></span><button class="icon del" data-act="delDefect" data-di="${i}" aria-label="刪除缺失">🗑️</button></div>
+      <div class="g2">
+        <label>位置<input data-di="${i}" data-f="location" value="${esc(d.location)}" placeholder="如 3F B2-C3 柱"></label>
+        <label>工項類別<select data-di="${i}" data-f="category">${opts(CATS, d.category)}</select></label>
+      </div>
+      <label>缺失說明<textarea data-di="${i}" data-f="desc" rows="2" placeholder="缺失情形與改善要求">${esc(d.desc)}</textarea></label>
+      <div class="g2">
+        <label>嚴重度<select data-di="${i}" data-f="severity">${opts(SEV, d.severity)}</select></label>
+        <label>改善狀態<select data-di="${i}" data-f="status">${opts(STATUS, d.status)}</select></label>
+        <label>責任廠商<input data-di="${i}" data-f="vendor" list="vendors" value="${esc(d.vendor)}" placeholder="廠商名稱"></label>
+        <label>改善期限<input type="date" data-di="${i}" data-f="due" value="${esc(d.due)}"></label>
+      </div>
+      <div class="phl">缺失照片</div>${thumbs(d.photos, 'defect:' + i)}
+      <div class="phl">改善後照片</div>${thumbs(d.fixPhotos, 'fix:' + i)}
+    </div>`;
+  });
+  h += `<datalist id="vendors">${S.vendors.map(v => `<option value="${esc(v)}">`).join('')}</datalist>
+    <div class="row hide-lock"><button class="btn primary grow" data-act="addDefect">＋ 新增缺失</button>
+    ${carry.length ? `<button class="btn ghost grow" data-act="carry">↻ 帶入前次未改善（${carry.length}）</button>` : ''}</div>`;
+  return h;
+}
+function safetyHTML(r) {
+  const s = stats(r), total = SAFETY.reduce((a, g) => a + g.i.length, 0);
+  let h = `<div class="sec-h"><h2>⛑️ 勞工安全衛生檢查</h2><span class="cnt">${s.checked}/${total}</span>${s.ng ? `<span class="tag bad">不符合 ${s.ng}</span>` : ''}</div>
+    <p class="muted small" style="margin-top:-4px">逐項點選結果；「不符合」請填寫說明並拍照。</p>`;
+  SAFETY.forEach((g, gi) => {
+    const vals = g.i.map(([id]) => r.safety[id]?.r || '');
+    const nNg = vals.filter(v => v === 'ng').length, nDone = vals.filter(Boolean).length;
+    h += `<details class="sg" data-gi="${gi}" ${openCats.has(gi) ? 'open' : ''}><summary><span>${String.fromCharCode(65 + gi)}. ${g.c}</span>
+      <span class="sgc ${nDone === g.i.length && !nNg ? 'full' : ''}">${nNg ? `<b class="ngc">${nNg} 不符合</b>　` : ''}${nDone}/${g.i.length}${nDone === g.i.length && !nNg ? ' ✔' : ''}</span></summary>
+      <div class="sgb"><button class="btn sm ghost hide-lock" data-act="allOk" data-gi="${gi}">本類其餘全部「符合」</button>
+      ${g.i.map(([id, txt]) => {
+        const it = r.safety[id] || {};
+        return `<div class="si ${it.r || ''}"><div class="sit">${txt}</div>
+          <div class="seg">${[['ok', '符合'], ['ng', '不符合'], ['na', '不適用']].map(([v, l]) => `<button class="${it.r === v ? 'on ' + v : ''}" data-act="safetyR" data-si="${id}" data-r="${v}">${l}</button>`).join('')}</div>
+          ${it.r === 'ng' ? `<input data-si="${id}" data-f="note" value="${esc(it.note)}" placeholder="不符合說明（位置、情形、改善要求）">${thumbs(it.photos, 'safety:' + id)}` : ''}</div>`;
+      }).join('')}</div></details>`;
+  });
+  h += `<label style="margin:10px 0 0">勞安其他事項／宣導<textarea data-f="safetyNote" rows="2">${esc(r.safetyNote)}</textarea></label>`;
+  return h;
+}
+function photosHTML(r) {
+  return `<div class="sec-h"><h2>📸 現場照片</h2><span class="cnt">${r.photos.length}</span></div>
+    <p class="muted small" style="margin-top:-4px">施工進度、重要節點等一般照片，可加註說明。</p>
+    <div class="gphotos">${r.photos.map((p, i) => `<div class="gp"><div class="th"><img data-pid="${p.id}" data-act="viewPhoto" alt=""><button class="del" data-act="delPhoto" data-t="gen" data-pid="${p.id}">×</button></div>
+      <input data-pi="${i}" data-f="caption" value="${esc(p.caption)}" placeholder="照片說明"></div>`).join('')}</div>
+    <div class="row hide-lock"><button class="btn ghost grow" data-act="addPhoto" data-t="gen" data-m="cam">📷 拍照</button><button class="btn ghost grow" data-act="addPhoto" data-t="gen" data-m="alb">🖼️ 從相簿選</button></div>`;
+}
+function signHTML(r) {
+  if (r.signature) return `<div class="card"><div class="sec-h"><h2>✍️ 電子簽名</h2><span class="tag ok">已簽名</span></div>
+    <img class="sigimg" src="${r.signature.img}" alt="簽名">
+    <p class="small muted">${esc(r.signature.name)}（${esc(r.signature.title || '')}）簽署於 ${fmtTime(r.signature.time)}</p>
+    <button class="btn ghost sm" data-act="unsign">解除簽名（修改內容）</button></div>`;
+  return `<div class="card"><div class="sec-h"><h2>✍️ 電子簽名</h2><span class="tag warn">未簽名</span></div>
+    <p class="small muted" style="margin-top:0">確認本日整筆資料無誤後簽名，簽名後內容將鎖定，並帶入匯出的日報。</p>
+    <button class="btn dark block" data-act="sign">簽署本日日報</button></div>`;
+}
+
+/* 自動儲存 */
+let saveT;
+function saveSoon() { clearTimeout(saveT); saveT = setTimeout(saveNow, 500); }
+async function saveNow() {
+  clearTimeout(saveT); if (!cur) return;
+  cur.updatedAt = Date.now(); await dbPut('reports', cur);
+  const s = $('#saved'); if (s) s.textContent = '✓ 已自動儲存 ' + fmtTime(cur.updatedAt).slice(11);
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
+
+function onField(e) {
+  const el = e.target, f = el.dataset.f;
+  if (!f || !cur || view !== 'today') return;
+  const v = el.value;
+  if (el.dataset.di !== undefined) {
+    const d = cur.defects[+el.dataset.di]; d[f] = v;
+    if (e.type === 'change' && (f === 'severity' || f === 'status')) refresh('defects');
+    if (e.type === 'change' && f === 'vendor' && v.trim() && !S.vendors.includes(v.trim())) { S.vendors.push(v.trim()); saveSettings(); }
+  } else if (el.dataset.si) { (cur.safety[el.dataset.si] ||= { r: 'ng' }).note = v; }
+  else if (el.dataset.pi !== undefined) { cur.photos[+el.dataset.pi].caption = v; }
+  else cur[f] = v;
+  saveSoon();
+}
+
+/* ================= 拍照 / 上傳 ================= */
+let photoTarget = '';
+async function onFiles(input) {
+  const files = [...input.files]; input.value = '';
+  if (!files.length || !cur) return;
+  busy(true, '照片處理中…');
+  try {
+    const ids = [];
+    for (const f of files) {
+      const blob = await compress(f, input.id === 'camIn' ? Date.now() : (f.lastModified || Date.now()));
+      const id = uid(); await dbPut('photos', { id, blob }); ids.push(id);
+    }
+    const [k, x] = photoTarget.split(':');
+    if (k === 'gen') { ids.forEach(id => cur.photos.push({ id, caption: '' })); }
+    else if (k === 'defect') cur.defects[+x].photos.push(...ids);
+    else if (k === 'fix') { const d = cur.defects[+x]; d.fixPhotos.push(...ids); }
+    else if (k === 'safety') { const s = (cur.safety[x] ||= { r: 'ng' }); (s.photos ||= []).push(...ids); }
+    await saveNow();
+    refresh(k === 'gen' ? 'photos' : k === 'safety' ? 'safety' : 'defects');
+    toast(`已加入 ${ids.length} 張照片`);
+  } catch (err) { alert('照片處理失敗：' + err.message); }
+  busy(false);
+}
+$('#camIn').onchange = e => onFiles(e.target);
+$('#albIn').onchange = e => onFiles(e.target);
+
+/* ================= 電子簽名 ================= */
+function openModal(html) { $('#modal').innerHTML = html; history.pushState({ v: view, modal: 1 }, ''); }
+function closeModal() { if ($('#modal').innerHTML) history.back(); }
+let sigInk = false;
+function openSign() {
+  openModal(`<div class="bk"><div class="sheet">
+    <h3>✍️ 簽署日報</h3>
+    <p class="small muted" style="margin:0">${esc(cur.date)}（${weekday(cur.date)}）${esc(cur.siteName)}</p>
+    <div class="g2" style="margin-top:12px"><label>簽署人<input id="sigName" value="${esc(S.name)}" placeholder="姓名"></label><label>職稱<input id="sigTitle" value="${esc(S.title)}"></label></div>
+    <canvas id="sigC"></canvas>
+    <div class="row"><button class="btn ghost sm" data-act="sigClear">清除重簽</button>${S.lastSig ? `<button class="btn ghost sm" data-act="sigLast">套用上次簽名</button>` : ''}
+    <span class="spacer"></span><button class="btn ghost" data-act="closeModal">取消</button><button class="btn primary" data-act="sigOk">確認簽名</button></div>
+  </div></div>`);
+  const c = $('#sigC'), dpr = window.devicePixelRatio || 1;
+  c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
+  const x = c.getContext('2d'); x.scale(dpr, dpr);
+  x.lineWidth = 2.6; x.lineCap = 'round'; x.lineJoin = 'round'; x.strokeStyle = '#1a1a2e';
+  sigInk = false; let drawing = false, lx = 0, ly = 0;
+  const pos = e => { const b = c.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  c.onpointerdown = e => { drawing = true; c.setPointerCapture(e.pointerId); [lx, ly] = pos(e); x.beginPath(); x.arc(lx, ly, 1.2, 0, 7); x.fillStyle = x.strokeStyle; x.fill(); sigInk = true; };
+  c.onpointermove = e => { if (!drawing) return; const [nx, ny] = pos(e); x.beginPath(); x.moveTo(lx, ly); x.lineTo(nx, ny); x.stroke(); lx = nx; ly = ny; };
+  c.onpointerup = c.onpointercancel = () => { drawing = false; };
+}
+function sigCanvasClear() { const c = $('#sigC'); c.getContext('2d').clearRect(0, 0, c.width, c.height); sigInk = false; }
+function sigCanvasLast() {
+  const c = $('#sigC'), x = c.getContext('2d'), im = new Image();
+  im.onload = () => { sigCanvasClear(); const w = c.clientWidth, h = c.clientHeight, k = Math.min(w / im.width, h / im.height); x.drawImage(im, (w - im.width * k) / 2, (h - im.height * k) / 2, im.width * k, im.height * k); sigInk = true; };
+  im.src = S.lastSig;
+}
+async function sigConfirm() {
+  const name = $('#sigName').value.trim(), title = $('#sigTitle').value.trim();
+  if (!name) return alert('請填寫簽署人姓名');
+  if (!sigInk) return alert('請在框內簽名');
+  const img = $('#sigC').toDataURL('image/png');
+  await saveNow();
+  cur.signature = { img, name, title, time: Date.now() };
+  S.name = name; S.title = title; S.lastSig = img; await saveSettings();
+  await saveNow(); closeModal(); render(); toast('已完成電子簽名');
+}
+
+/* ================= 日報紙本（預覽 / PDF / 列印共用） ================= */
+function reportHTML(r) {
+  const st = stats(r), site = S.sites.find(s => s.id === r.siteId);
+  const sig = r.signature;
+  const ph = (ids, cls = '') => ids?.length ? `<div class="pph ${cls}">${ids.map(id => `<div class="pimg" data-bg="${id}"></div>`).join('')}</div>` : '';
+  let h = `<div class="paper">
+  <div class="blk phead"><img class="plogo" src="logo.png" alt=""><div class="pt"><div class="pt1">工務經理每日巡查日報</div><div class="pt2">DAILY SITE INSPECTION REPORT</div></div>
+    <div class="pno">編號<br><b>${r.date.replaceAll('-', '')}-${esc(site?.code || r.siteId.slice(-4).toUpperCase())}</b></div></div>
+  <div class="blk"><table class="kv">
+    <tr><th>工地名稱</th><td>${esc(r.siteName)}</td><th>巡查日期</th><td>${r.date}（${weekday(r.date)}）</td></tr>
+    <tr><th>巡查人員</th><td>${esc(sig?.name || S.name) || '—'}　${esc(sig?.title || S.title)}</td><th>巡查時間</th><td>${esc(r.timeStart) || '—'} ～ ${esc(r.timeEnd) || '—'}</td></tr>
+    <tr><th>天氣</th><td>${esc(r.weather)}${r.temp ? '　' + esc(r.temp) + '°C' : ''}</td><th>出工人數</th><td>${r.workers ? esc(r.workers) + ' 人' : '—'}</td></tr>
+    <tr><th>主要施工項目</th><td colspan="3" class="pre">${esc(r.workItems) || '—'}</td></tr>
+    <tr><th>本日統計</th><td colspan="3">巡檢缺失 <b>${st.def}</b> 項（未改善 ${st.open} 項）；勞安檢查 ${st.checked} 項，不符合 <b style="color:#dc2626">${st.ng}</b> 項；照片 ${st.nPhoto} 張</td></tr>
+  </table></div>`;
+
+  const s1 = `<div class="psec">一、巡檢缺失紀錄</div>`;
+  if (!r.defects.length) h += `<div class="blk">${s1}<div class="pnone">本日巡查無缺失事項。</div></div>`;
+  r.defects.forEach((d, i) => {
+    const hasPh = d.photos.length || d.fixPhotos.length, sv = SEV.indexOf(d.severity) + 1;
+    h += `<div class="blk">${i === 0 ? s1 : ''}<table class="pd">
+      <tr><th class="no" rowspan="${hasPh ? 4 : 3}">${i + 1}</th><th>位置</th><td>${esc(d.location) || '—'}</td><th>工項</th><td>${esc(d.category)}</td><th>嚴重度</th><td class="sv${sv}">${esc(d.severity)}</td></tr>
+      <tr><th>責任廠商</th><td>${esc(d.vendor) || '—'}</td><th>改善期限</th><td>${esc(d.due) || '—'}</td><th>狀態</th><td class="${d.status === '已改善' ? 'stdone' : ''}">${esc(d.status)}</td></tr>
+      <tr><th>缺失說明</th><td colspan="5" class="pre">${esc(d.desc) || '—'}${d.firstDate && d.firstDate !== r.date ? `<div class="psmall">※ ${d.firstDate} 巡查發現，持續追蹤中</div>` : ''}</td></tr>
+      ${hasPh ? `<tr><th>照片</th><td colspan="5">${d.photos.length ? `<div class="phcap">缺失照片</div>${ph(d.photos)}` : ''}${d.fixPhotos.length ? `<div class="phcap">改善後照片</div>${ph(d.fixPhotos)}` : ''}</td></tr>` : ''}
+    </table></div>`;
+  });
+
+  const cols = `<colgroup><col><col class="c2"><col class="c3"></colgroup>`;
+  SAFETY.forEach((g, gi) => {
+    h += `<div class="blk">${gi === 0 ? `<div class="psec">二、勞工安全衛生檢查紀錄</div>` : ''}<table class="ps">${cols}
+      ${gi === 0 ? `<tr class="colh"><th>檢查項目</th><th>結果</th><th>說明</th></tr>` : ''}
+      <tr class="pcat"><th colspan="3">${String.fromCharCode(65 + gi)}. ${g.c}</th></tr>
+      ${g.i.map(([id, t]) => { const s = r.safety[id] || {}; return `<tr class="${s.r === 'ng' ? 'ngr' : ''}"><td class="pit">${t}</td><td class="res ${s.r || ''}">${{ ok: '✔ 符合', ng: '✘ 不符合', na: '不適用' }[s.r] || '未檢'}</td><td>${esc(s.note || '')}${ph(s.photos, 'sm')}</td></tr>`; }).join('')}
+    </table></div>`;
+  });
+  if (r.safetyNote) h += `<div class="blk"><table><tr><th style="width:92px">其他事項</th><td class="pre">${esc(r.safetyNote)}</td></tr></table></div>`;
+
+  if (r.photos.length) {
+    for (let i = 0; i < r.photos.length; i += 3) {
+      h += `<div class="blk">${i === 0 ? `<div class="psec">三、現場照片</div>` : ''}<div class="pgrid">${r.photos.slice(i, i + 3).map((p, j) => `<figure><div class="pimg" data-bg="${p.id}"></div><figcaption>${i + j + 1}. ${esc(p.caption)}</figcaption></figure>`).join('')}</div></div>`;
+    }
+  }
+  h += `<div class="blk"><div class="psec">${r.photos.length ? '四' : '三'}、綜合說明</div><table class="kv">
+    <tr><th>綜合意見</th><td class="pre">${esc(r.summary) || '—'}</td></tr>
+    <tr><th>明日預定工作</th><td class="pre">${esc(r.tomorrow) || '—'}</td></tr></table></div>
+  <div class="blk psign"><table><tr><th>巡查人簽名</th><th>主管核閱</th></tr>
+    <tr><td class="sbox">${sig ? `<img src="${sig.img}" alt=""><div class="psmall">${esc(sig.name)}　${fmtTime(sig.time)}</div>` : '<div class="psmall">（尚未電子簽名，請親簽）</div>'}</td><td class="sbox"></td></tr></table>
+    <div class="pfoot">東唐建設　工務巡查日報｜產製時間 ${fmtTime(Date.now())}</div></div>
+  </div>`;
+  return h;
+}
+async function renderPreview() {
+  if (!cur) return go('today', false);
+  await saveNow();
+  const app = $('#app');
+  app.innerHTML = `<div class="card" style="padding:12px">
+    <div class="row" style="margin-bottom:10px"><button class="btn ghost sm" data-act="back">← 返回編輯</button><span class="spacer"></span>
+      <span class="tag ${cur.signature ? 'ok' : 'warn'}">${cur.signature ? '已電子簽名' : '未簽名'}</span></div>
+    ${cur.signature ? '' : `<p class="small" style="color:var(--amber);margin:0 0 10px">⚠ 尚未電子簽名。可回編輯頁簽名，或直接匯出後親筆簽名。</p>`}
+    <div class="pvbar"><button class="btn primary" data-act="pdfShare">📤 分享 PDF</button><button class="btn dark" data-act="pdfSave">⬇️ 下載 PDF</button>
+      <button class="btn ghost" data-act="print">🖨️ 列印</button><button class="btn ghost" data-act="${cur.signature ? 'back' : 'sign'}">${cur.signature ? '✏️ 回編輯' : '✍️ 去簽名'}</button></div>
+  </div>
+  <div class="pvwrap" id="pv">${reportHTML(cur)}</div>`;
+  const fit = () => { const p = $('#pv .paper'); if (p) p.style.zoom = Math.min(1, ($('#pv').clientWidth - 16) / 794); };
+  fit(); window.onresize = fit;
+  hydrate($('#pv'));
+}
+async function makePDF(r) {
+  if (!window.jspdf || !window.html2canvas) throw new Error('PDF 元件尚未載入（第一次使用需連網）。可改用「列印」→ 另存為 PDF。');
+  const host = document.createElement('div'); host.className = 'paper-host'; host.innerHTML = reportHTML(r);
+  document.body.appendChild(host);
+  try {
+    await hydrate(host);
+    const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', compress: true });
+    const PW = 210, PH = 297, M = 12, CW = PW - M * 2, MAXH = PH - M * 2 - 6;
+    let y = M;
+    for (const b of $$('.blk', host)) {
+      const c = await html2canvas(b, { scale: 2, backgroundColor: '#ffffff', logging: false });
+      let w = CW, h = c.height * CW / c.width;
+      if (h > MAXH) { w = w * MAXH / h; h = MAXH; }
+      if (y + h > PH - M - 6 && y > M) { pdf.addPage(); y = M; }
+      pdf.addImage(c.toDataURL('image/jpeg', .88), 'JPEG', M + (CW - w) / 2, y, w, h);
+      y += h;
+    }
+    const n = pdf.getNumberOfPages();
+    for (let i = 1; i <= n; i++) { pdf.setPage(i); pdf.setFontSize(8); pdf.setTextColor(150); pdf.text(`${r.date}   ${i} / ${n}`, PW - M, PH - 6, { align: 'right' }); }
+    return pdf.output('blob');
+  } finally { host.remove(); }
+}
+const pdfName = r => `巡查日報_${r.siteName}_${r.date}.pdf`.replace(/[\\/:*?"<>|]/g, '_');
+function download(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+}
+async function exportPDF(share) {
+  busy(true, '正在產生 PDF…');
+  try {
+    const blob = await makePDF(cur), name = pdfName(cur);
+    const file = new File([blob], name, { type: 'application/pdf' });
+    busy(false);
+    if (share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: name }); } catch (e) { if (e.name !== 'AbortError') download(blob, name); }
+    } else { download(blob, name); if (share) toast('此瀏覽器不支援分享，已改為下載'); }
+  } catch (err) { busy(false); alert(err.message); }
+}
+
+/* ================= 歷史日報 ================= */
+async function renderList() {
+  const all = (await dbAll('reports')).filter(r => !listSite || r.siteId === listSite)
+    .sort((a, b) => b.date.localeCompare(a.date) || a.siteName.localeCompare(b.siteName));
+  const siteOpts = [...new Map((await dbAll('reports')).map(r => [r.siteId, r.siteName])).entries()];
+  let h = `<div class="card picker"><label style="margin:0">篩選工地<select id="lSite"><option value="">全部工地</option>${siteOpts.map(([id, n]) => `<option value="${id}" ${id === listSite ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label></div>`;
+  if (!all.length) { $('#app').innerHTML = h + `<div class="card empty"><div class="big">🗂️</div><p class="muted">還沒有日報紀錄</p></div>`; return; }
+  h += `<div class="card" style="padding:4px 12px">`;
+  let mon = '';
+  all.forEach(r => {
+    const s = stats(r), m = r.date.slice(0, 7);
+    if (m !== mon) { mon = m; h += `<div class="month">${m.replace('-', ' 年 ')} 月</div>`; }
+    h += `<div class="rec" data-act="openRec" data-id="${r.id}">
+      <div class="d"><b>${r.date.slice(8)}</b><span>週${weekday(r.date)}</span></div>
+      <div class="m"><div class="t">${esc(r.siteName)}</div><div class="s">
+        <span class="tag ${s.open ? 'warn' : ''}">缺失 ${s.def}</span>${s.ng ? `<span class="tag bad">勞安不符 ${s.ng}</span>` : ''}
+        <span class="tag">📷 ${s.nPhoto}</span><span class="tag ${r.signature ? 'ok' : 'warn'}">${r.signature ? '已簽名' : '未簽名'}</span></div></div>
+      <button class="icon" data-act="delRec" data-id="${r.id}" aria-label="刪除">🗑️</button></div>`;
+  });
+  $('#app').innerHTML = h + '</div>';
+}
+
+/* ================= 設定 ================= */
+async function renderSettings() {
+  let est = '';
+  try { const e = await navigator.storage.estimate(); est = `已使用約 ${(e.usage / 1048576).toFixed(1)} MB`; } catch (e) { }
+  $('#app').innerHTML = `
+  <section class="card"><div class="sec-h"><h2>👤 個人資料</h2></div>
+    <div class="g2"><label>姓名<input id="sName" value="${esc(S.name)}"></label><label>職稱<input id="sTitle" value="${esc(S.title)}"></label></div>
+    <p class="small muted" style="margin:0">會帶入日報的「巡查人員」與簽名欄。</p></section>
+  <section class="card"><div class="sec-h"><h2>🏗️ 我的工地</h2><span class="cnt">${S.sites.length}</span></div>
+    ${S.sites.map((s, i) => `<div class="site-li"><span class="n">${esc(s.name)}${s.code ? ` <span class="tag">${esc(s.code)}</span>` : ''}</span>
+      <button class="icon" data-act="editSite" data-i="${i}" aria-label="修改">✏️</button><button class="icon" data-act="delSite" data-i="${i}" aria-label="刪除">🗑️</button></div>`).join('') || '<p class="muted small">尚無工地</p>'}
+    <button class="btn primary block" style="margin-top:12px" data-act="addSite">＋ 新增工地</button></section>
+  <section class="card"><div class="sec-h"><h2>📷 照片</h2></div>
+    <label class="row" style="color:var(--text);font-size:15px;margin:0"><input type="checkbox" id="sWm" style="width:22px;min-height:22px" ${S.watermark ? 'checked' : ''}> 照片自動加註「工地名稱＋拍攝時間」浮水印</label></section>
+  <section class="card"><div class="sec-h"><h2>💾 資料備份</h2></div>
+    <p class="small muted" style="margin-top:0">本 APP 為個人工具，資料只存在這支手機的瀏覽器中（不上傳任何伺服器）。建議每週匯出備份一次，換手機時用「匯入」還原。${est ? '<br>' + est : ''}</p>
+    <div class="row"><button class="btn dark grow" data-act="backup">⬇️ 匯出備份</button><button class="btn ghost grow" data-act="restore">⬆️ 匯入備份</button></div></section>
+  <p class="small muted" style="text-align:center">東唐建設　工務巡查日報 v1.0</p>`;
+}
+$('#app').addEventListener('change', e => {
+  if (e.target.id === 'sName') { S.name = e.target.value.trim(); saveSettings(); render(); }
+  if (e.target.id === 'sTitle') { S.title = e.target.value.trim(); saveSettings(); render(); }
+  if (e.target.id === 'sWm') { S.watermark = e.target.checked; saveSettings(); }
+});
+async function addSite() {
+  const name = (prompt('工地名稱（例：東唐蒔光）') || '').trim(); if (!name) return null;
+  const code = (prompt('工地代號（可留空，例：LB033）') || '').trim();
+  const s = { id: uid(), name, code }; S.sites.push(s); await saveSettings(); return s;
+}
+async function backup() {
+  busy(true, '匯出中…');
+  try {
+    const photos = [];
+    for (const p of await dbAll('photos')) photos.push({ id: p.id, data: await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(p.blob); }) });
+    const data = { app: 'dongtang-daily', ver: 1, at: Date.now(), settings: S, reports: await dbAll('reports'), photos };
+    download(new Blob([JSON.stringify(data)], { type: 'application/json' }), `巡查日報備份_${todayStr().replaceAll('-', '')}.json`);
+  } finally { busy(false); }
+}
+$('#bakIn').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (data.app !== 'dongtang-daily') throw new Error('這不是巡查日報的備份檔');
+    if (!confirm(`備份含 ${data.reports.length} 份日報、${data.photos.length} 張照片。\n相同日期與工地的日報會被備份覆蓋，確定匯入？`)) return;
+    busy(true, '匯入中…');
+    for (const p of data.photos) await dbPut('photos', { id: p.id, blob: await (await fetch(p.data)).blob() });
+    for (const r of data.reports) await dbPut('reports', r);
+    const ids = new Set(S.sites.map(s => s.id));
+    data.settings.sites.forEach(s => { if (!ids.has(s.id)) S.sites.push(s); });
+    if (!S.name) { S.name = data.settings.name; S.title = data.settings.title; }
+    S.vendors = [...new Set([...S.vendors, ...(data.settings.vendors || [])])];
+    await saveSettings(); busy(false); toast('匯入完成'); render();
+  } catch (err) { busy(false); alert('匯入失敗：' + err.message); }
+};
+
+/* ================= 事件 ================= */
+$('#app').addEventListener('input', onField);
+$('#app').addEventListener('change', async e => {
+  if (e.target.dataset.f) return onField(e);
+  if (e.target.id === 'pDate' && e.target.value) { await saveNow(); selDate = e.target.value; renderToday(); }
+  if (e.target.id === 'pSite') {
+    await saveNow();
+    if (e.target.value === '__new') { const s = await addSite(); if (s) selSite = s.id; }
+    else selSite = e.target.value;
+    S.lastSite = selSite; saveSettings(); renderToday();
+  }
+  if (e.target.id === 'lSite') { listSite = e.target.value; renderList(); }
+});
+$('#app').addEventListener('toggle', e => {
+  if (e.target.matches?.('details.sg')) { const gi = +e.target.dataset.gi; e.target.open ? openCats.add(gi) : openCats.delete(gi); }
+}, true);
+$$('.tabbar button').forEach(b => b.onclick = async () => { await saveNow(); go(b.dataset.go); });
+
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const a = el.dataset.act, d = el.dataset;
+  switch (a) {
+    case 'addSite': { const s = await addSite(); if (s) { selSite = s.id; S.lastSite = s.id; saveSettings(); } render(); break; }
+    case 'editSite': {
+      const s = S.sites[+d.i]; const n = (prompt('工地名稱', s.name) || '').trim(); if (!n) break;
+      s.name = n; s.code = (prompt('工地代號', s.code || '') ?? s.code).trim(); await saveSettings(); render(); break;
+    }
+    case 'delSite': {
+      const s = S.sites[+d.i];
+      if (!confirm(`從工地清單移除「${s.name}」？\n（已建立的日報會保留在歷史日報）`)) break;
+      S.sites.splice(+d.i, 1); await saveSettings(); render(); break;
+    }
+    case 'start': {
+      const site = S.sites.find(s => s.id === selSite);
+      cur = blankReport(selDate, site);
+      if (selDate === todayStr()) { const n = new Date(); cur.timeStart = `${pad2(n.getHours())}:${pad2(n.getMinutes())}`; }
+      if (prevRep) cur.workItems = '';
+      await saveNow(); renderToday(); break;
+    }
+    case 'addDefect': cur.defects.push(newDefect(cur.date)); await saveNow(); refresh('defects');
+      setTimeout(() => { const last = $$('#sec-defects .defect').pop(); last?.scrollIntoView({ behavior: 'smooth', block: 'center' }); last?.querySelector('input')?.focus(); }, 50); break;
+    case 'delDefect': {
+      const df = cur.defects[+d.di];
+      if (!confirm(`刪除缺失 #${+d.di + 1}${df.desc ? '「' + df.desc.slice(0, 20) + '」' : ''}？`)) break;
+      [...df.photos, ...df.fixPhotos].forEach(id => dbDel('photos', id));
+      cur.defects.splice(+d.di, 1); await saveNow(); refresh('defects'); break;
+    }
+    case 'carry': {
+      const list = carryList(); busy(true, '帶入中…');
+      for (const pd of list) {
+        const nd = { ...pd, id: uid(), origin: pd.origin || pd.id, firstDate: pd.firstDate || prevRep.date, photos: [], fixPhotos: [] };
+        for (const id of pd.photos) { const n = await copyPhoto(id); if (n) nd.photos.push(n); }
+        for (const id of pd.fixPhotos) { const n = await copyPhoto(id); if (n) nd.fixPhotos.push(n); }
+        cur.defects.push(nd);
+      }
+      busy(false); await saveNow(); refresh('defects'); toast(`已帶入 ${list.length} 項未改善缺失`); break;
+    }
+    case 'safetyR': {
+      const it = (cur.safety[d.si] ||= {});
+      it.r = it.r === d.r ? '' : d.r;
+      if (!it.r && !it.note && !it.photos?.length) delete cur.safety[d.si];
+      await saveNow(); refresh('safety'); break;
+    }
+    case 'allOk': {
+      SAFETY[+d.gi].i.forEach(([id]) => { if (!cur.safety[id]?.r) cur.safety[id] = { ...(cur.safety[id] || {}), r: 'ok' }; });
+      await saveNow(); refresh('safety'); break;
+    }
+    case 'addPhoto': photoTarget = d.t; $(d.m === 'cam' ? '#camIn' : '#albIn').click(); break;
+    case 'delPhoto': {
+      if (!confirm('刪除這張照片？')) break;
+      const [k, x] = d.t.split(':'), id = d.pid;
+      if (k === 'gen') cur.photos = cur.photos.filter(p => p.id !== id);
+      else if (k === 'defect') cur.defects[+x].photos = cur.defects[+x].photos.filter(p => p !== id);
+      else if (k === 'fix') cur.defects[+x].fixPhotos = cur.defects[+x].fixPhotos.filter(p => p !== id);
+      else if (k === 'safety') cur.safety[x].photos = cur.safety[x].photos.filter(p => p !== id);
+      dbDel('photos', id); await saveNow(); refresh(k === 'gen' ? 'photos' : k === 'safety' ? 'safety' : 'defects'); break;
+    }
+    case 'viewPhoto': { const u = await photoURL(el.dataset.pid); openModal(`<div class="viewer" data-act="closeModal"><img src="${u}" alt=""><button aria-label="關閉">×</button></div>`); break; }
+    case 'closeModal': if (e.target === el || el.tagName === 'BUTTON' || el.classList.contains('viewer')) closeModal(); break;
+    case 'sign': if (view === 'preview') go('today'); setTimeout(openSign, 0); break;
+    case 'sigClear': sigCanvasClear(); break;
+    case 'sigLast': sigCanvasLast(); break;
+    case 'sigOk': sigConfirm(); break;
+    case 'unsign': if (confirm('解除簽名後可修改內容，修改完需重新簽名。確定解除？')) { cur.signature = null; await saveNow(); render(); } break;
+    case 'preview': await saveNow(); go('preview'); break;
+    case 'back': history.back(); break;
+    case 'pdfSave': exportPDF(false); break;
+    case 'pdfShare': exportPDF(true); break;
+    case 'print': window.print(); break;
+    case 'openRec': {
+      if (e.target.closest('[data-act="delRec"]')) break;
+      const r = await dbGet('reports', d.id); selDate = r.date; selSite = r.siteId;
+      if (!S.sites.find(s => s.id === r.siteId)) { S.sites.push({ id: r.siteId, name: r.siteName, code: '' }); await saveSettings(); }
+      go('today'); break;
+    }
+    case 'delRec': {
+      e.stopPropagation();
+      const r = await dbGet('reports', d.id);
+      if (!confirm(`刪除 ${r.date} ${r.siteName} 的日報？\n含照片一併刪除，無法復原。`)) break;
+      const s = Object.values(r.safety);
+      [...r.photos.map(p => p.id), ...r.defects.flatMap(x => [...x.photos, ...x.fixPhotos]), ...s.flatMap(x => x.photos || [])].forEach(id => dbDel('photos', id));
+      await dbDel('reports', d.id); renderList(); toast('已刪除'); break;
+    }
+    case 'backup': backup(); break;
+    case 'restore': $('#bakIn').click(); break;
+  }
+});
+
+/* ================= 啟動 ================= */
+(async () => {
+  await openDB();
+  Object.assign(S, (await dbGet('kv', 'settings')) || {});
+  selSite = S.lastSite;
+  history.replaceState({ v: 'today' }, '');
+  navigator.storage?.persist?.();
+  render();
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
+})();
+</script>
+</body>
+</html>
