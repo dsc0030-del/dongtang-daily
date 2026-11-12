@@ -1,5 +1,5 @@
 // 離線快取：APP 本體與 PDF 元件。改版時把版本號 +1。
-const CACHE = 'dt-daily-v1';
+const CACHE = 'dt-daily-v2';
 const ASSETS = [
   './', 'index.html', 'manifest.webmanifest', 'logo.png', 'icon-180.png', 'icon-192.png', 'icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
